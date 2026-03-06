@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serve & Lead Society - Certificate Portal</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  padding: 20px;
+}
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+h1 { text-align: center; color: #1c274b; }
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+button {
+  background: #029ade;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button:hover { background: #1c274b; }
+#msg { text-align:center; margin-top:10px; }
+.error { color:red; }
+.success { color:green; }
+#preview { display:none; text-align:center; margin-top:20px; }
+#preview img { max-width:100%; border-radius:10px; border:2px solid #ddd; }
+.download {
+  display:inline-block;
+  margin-top:10px;
+  background:green;
+  color:white;
+  padding:10px 20px;
+  border-radius:6px;
+  text-decoration:none;
+}
+@media(max-width:768px){
+  .container{padding:15px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Serve & Lead Society Certificate Portal</h1>
+
+<select id="event">
+<option value="">Select Event</option>
+<option value="Orientation">Orientation Session</option>
+<option value="LinkedIn">LinkedIn Profile Development</option>
+<option value="Skills">Skills Completion</option>
+<option value="Service">Service Award</option>
+</select>
+
+<input type="text" id="id" placeholder="Membership ID">
+<input type="email" id="email" placeholder="Gmail Address">
+
+<button onclick="generateCertificate()">Get Certificate</button>
+
+<div id="msg"></div>
+
+<div id="preview">
+<h3>Your Certificate</h3>
+<img id="certImg">
+<br>
+<a id="downloadBtn" class="download" download>Download Certificate</a>
+</div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwagzHdlUH4wIvZ59gddgUQDgwqVE-6aMBLYLbQv6i5N5y7bC5SajqSjHPzt8UJUqbZ8a/exec"; // Your Apps Script Web App
+
+function generateCertificate(){
+  const memberId = document.getElementById("id").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const event = document.getElementById("event").value;
+  const msg = document.getElementById("msg");
+
+  if(!memberId || !email || !event){
+    msg.innerHTML = "<p class='error'>Please fill all fields</p>";
+    return;
+  }
+
+  msg.innerHTML = "<p>Processing...</p>";
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({memberId: memberId, email: email, event: event})
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.status=="success"){
+      msg.innerHTML = "<p class='success'>Certificate generated & email sent!</p>";
+
+      // Show preview if certificate URL returned
+      if(data.certificateUrl){
+        document.getElementById("certImg").src = data.certificateUrl;
+        document.getElementById("downloadBtn").href = data.certificateUrl;
+        document.getElementById("preview").style.display = "block";
+      }
+    } else {
+      msg.innerHTML = "<p class='error'>"+(data.message || "Error generating certificate")+"</p>";
+      document.getElementById("preview").style.display = "none";
+    }
+  })
+  .catch(err=>{
+    msg.innerHTML = "<p class='error'>Server error. Try again later.</p>";
+    console.error(err);
+  });
+}
+</script>
+
+</body>
+</html>\
 
